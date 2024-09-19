@@ -1300,3 +1300,44 @@ Qed.
 End PartialMap.
 
 (* 2024-08-25 14:45 *)
+
+Module NatTree.
+Inductive nattree : Type :=
+  | leaf
+  | branch (n : nat) (l r : nattree).
+
+Fixpoint count_leaves (t : nattree) : nat :=
+  match t with
+  | leaf => 1
+  | branch _ l r => (count_leaves l) + (count_leaves r)
+  end.
+
+Theorem even_n_plus_even_m : forall (n m : nat),
+  (even n) && (even m) = true -> (even (n + m)) = true.
+Proof.
+  intros n m.
+  intros H.
+  induction n as [|n' IHn'].
+  - simpl in H. simpl. apply H.
+  - 
+    rewrite plus_Sn_m.
+    rewrite even_S.
+    rewrite IHn'.
+Admitted.
+
+Theorem even_leaves : forall (t l r : nattree) (n : nat),
+  t = branch n l r ->
+  even (count_leaves t) = true ->
+  (even (count_leaves l)) && (even (count_leaves r)) ||
+  (negb (even (count_leaves l)) && (negb (even (count_leaves r)))) = true.
+Proof.
+  intros t l r n.
+  intros H_is_branch.
+  rewrite H_is_branch. simpl.
+  intros H_is_even_leaves.
+  (* rewrite even_n_plus_even_m.
+  rewrite H_is_even_leaves.
+  reflexivity. *)
+Admitted.
+
+End NatTree.
