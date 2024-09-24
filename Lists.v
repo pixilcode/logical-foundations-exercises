@@ -1341,3 +1341,87 @@ Proof.
 Admitted.
 
 End NatTree.
+
+(* NOTES
+
+*reflexivity* implies that two expressions are "expressionally/computationally
+*equal". 
+
+*)
+
+Module Notes.
+
+Goal 1 + 1 = 2.
+  cbv delta.
+  cbv fix.
+  cbv beta.
+  cbv match.
+  cbv fix.
+  cbv beta.
+  cbv match.
+Admitted.
+
+Inductive expr : Type :=
+| e_nat (n : nat)
+| e_bool (b : bool)
+| e_add (e1 e2 : expr)
+| e_mul (e1 e2 : expr)
+| e_if (e1 e2 e3 : expr).
+
+Inductive val : Type :=
+| v_nat (n : nat)
+| v_bool (b : bool)
+| v_err.
+
+Inductive typ : Type :=
+| t_num
+| t_bool.
+
+(* Fixpoint typecheck (e : expr) : option typ :=
+  match e with
+  | e_nat _ => Some t_num
+  | e_bool _ => Some t_bool
+  | e_add e1 e2 =>
+    match typecheck e1, typecheck e2 with
+    | Some t_num, Some t_num => Some t_num
+    | _, _ => None
+    end
+  | e_mul e1 e2 =>
+    match typecheck e1, typecheck e2 with
+    | Some t_num, Some t_num => Some t_num
+    | _, _ => None
+    end
+  | e_if cond e_then e_else =>
+    match typecheck cond, typecheck e_then, typecheck e_else with
+    | Some t_bool, Some if_type, Some then_type =>
+      match if_type, then_type =
+      if if_type = then_type then
+        Some if_type
+      else
+        None
+    | _, _, _ => None
+    end
+  end. *)
+
+Fixpoint eval (e : expr) : val :=
+  match e with
+  | e_nat n => v_nat n
+  | e_bool b => v_bool b
+  | e_add e1 e1 =>
+    match eval e1, eval e2 with
+    | v_nat n1, v_nat n2 => v_nat (n1 + n2)
+    | _, _ => v_err
+    end
+  | e_mul e1 e1 =>
+    match eval e1, eval e2 with
+    | v_nat n1, v_nat n2 => v_nat (n1 * n2)
+    | _, _ => v_err
+    end
+  | e_if cond e_then e_else =>
+    match eval cond with
+    | v_bool b => eval (if b then e_then else e_else)
+    | _ => errval
+    end
+  end.
+
+End Notes.
