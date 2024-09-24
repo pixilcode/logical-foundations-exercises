@@ -1407,12 +1407,12 @@ Fixpoint eval (e : expr) : val :=
   match e with
   | e_nat n => v_nat n
   | e_bool b => v_bool b
-  | e_add e1 e1 =>
+  | e_add e1 e2 =>
     match eval e1, eval e2 with
     | v_nat n1, v_nat n2 => v_nat (n1 + n2)
     | _, _ => v_err
     end
-  | e_mul e1 e1 =>
+  | e_mul e1 e2 =>
     match eval e1, eval e2 with
     | v_nat n1, v_nat n2 => v_nat (n1 * n2)
     | _, _ => v_err
@@ -1420,8 +1420,34 @@ Fixpoint eval (e : expr) : val :=
   | e_if cond e_then e_else =>
     match eval cond with
     | v_bool b => eval (if b then e_then else e_else)
-    | _ => errval
+    | _ => v_err
     end
   end.
+
+Fixpoint fact (n : nat) : nat.
+  destruct n as [|n'] eqn:En.
+  - exact 1.
+  - Show Proof.
+    apply mult.
+    apply n.
+    apply fact.
+    Show Proof.
+    apply n'.
+Defined.
+
+Compute (fact 4).
+
+Fixpoint fact' (n : nat) : nat.
+  refine (
+    match n with
+    | 0 => _
+    | S n' => _
+    end
+  ).
+  Show Proof.
+Admitted.
+
+Print fact'.
+  
 
 End Notes.
