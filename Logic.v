@@ -143,8 +143,17 @@ Qed.
 Example and_exercise :
   forall n m : nat, n + m = 0 -> n = 0 /\ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m.
+  intros H.
+  split.
+  - destruct m.
+    + rewrite add_0_r in H. apply H.
+    + rewrite add_comm in H. discriminate.
+  - destruct n.
+    + apply H.
+    + discriminate. 
+Qed.
+(** [x] *)
 
 (** So much for proving conjunctive statements.  To go in the other
     direction -- i.e., to _use_ a conjunctive hypothesis to help prove
@@ -222,8 +231,10 @@ Proof.
 Lemma proj2 : forall P Q : Prop,
   P /\ Q -> Q.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q [_ HQ].
+  apply HQ.
+Qed.
+(** [x] *)
 
 (** Finally, we sometimes need to rearrange the order of conjunctions
     and/or the grouping of multi-way conjunctions.  The following
@@ -248,8 +259,12 @@ Theorem and_assoc : forall P Q R : Prop,
   P /\ (Q /\ R) -> (P /\ Q) /\ R.
 Proof.
   intros P Q R [HP [HQ HR]].
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  split. split.
+  - apply HP.
+  - apply HQ.
+  - apply HR.
+Qed.
+(** [x] *)
 
 (** Finally, the infix notation [/\] is actually just syntactic sugar for
     [and A B].  That is, [and] is a Coq operator that takes two
@@ -312,15 +327,23 @@ Qed.
 Lemma mult_is_O :
   forall n m, n * m = 0 -> n = 0 \/ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros [|n'] [|m'] H.
+  - simpl in H. left. apply H.
+  - simpl in H. left. apply H.
+  - rewrite mul_0_r in H. right. apply H.
+  - discriminate H. 
+Qed.
+(** [x] *)
 
 (** **** Exercise: 1 star, standard (or_commut) *)
 Theorem or_commut : forall P Q : Prop,
   P \/ Q  -> Q \/ P.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q [HP | HQ].
+  - right. apply HP.
+  - left. apply HQ.
+Qed.
+(** [x] *)
 
 (* ================================================================= *)
 (** ** Falsehood and Negation
@@ -378,8 +401,12 @@ Proof.
 Theorem not_implies_our_not : forall (P:Prop),
   ~ P -> (forall (Q:Prop), P -> Q).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P H Q H'.
+  unfold not in H.
+  apply H in H'.
+  destruct H'.
+Qed.
+(** [x] *)
 
 (** Inequality is a very common form of negated statement, so there is a
     special notation for it:
@@ -437,24 +464,37 @@ Proof.
 
    _Theorem_: [P] implies [~~P], for any proposition [P]. *)
 
-(* FILL IN HERE *)
+(*
+  Let [P] be some proposition.
+
+  Assume [P].
+
+  [~~P] => [~(P -> False)] => [~(False)] => [False -> False] => True
+
+*)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_double_neg_inf : option (nat*string) := None.
-(** [] *)
+(** [x] *)
 
 (** **** Exercise: 2 stars, standard, especially useful (contrapositive) *)
 Theorem contrapositive : forall (P Q : Prop),
   (P -> Q) -> (~Q -> ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q.
+  intros H HnQ HnP.
+  apply HnQ.
+  apply H.
+  apply HnP.
+Qed.
+(** [x] *)
 
 (** **** Exercise: 1 star, standard (not_both_true_and_false) *)
 Theorem not_both_true_and_false : forall P : Prop,
   ~ (P /\ ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+
+Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, advanced (informal_not_PNP)
