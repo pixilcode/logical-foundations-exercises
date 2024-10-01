@@ -1359,3 +1359,39 @@ End Church.
 End Exercises.
 
 (* 2024-08-25 14:45 *)
+
+Module ClassNotes.
+(* 2024-09-26 *)
+
+Inductive AorB := A | B.
+
+Theorem discriminate_test : A = B -> False.
+Proof.
+  intros.
+  discriminate H.
+Defined.
+Print discriminate_test.
+
+Parameter T : Type.
+
+Definition some_other_type : T -> T.
+Check (fun (x : T) => x) : T -> T. Admitted.
+
+(* forall (_ : T), T. == T -> T *)
+
+Definition some_type : forall (x : T), x = x.
+Check (fun (x : T) =>  eq_refl x). Admitted.
+(* (x : T) -> x = x *)
+
+Theorem something : exists (x : nat), x = 5.
+Proof.
+  exists 5.
+  reflexivity.
+Qed.
+
+(* Pairs: (A * B) *)
+(* Dependent pairs: (x : A, B x) *)
+(* Dependent property: (x : A, P x) *)
+(* Property: P : A -> Prop *)
+
+End ClassNotes.
