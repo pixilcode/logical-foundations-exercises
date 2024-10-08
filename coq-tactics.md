@@ -20,6 +20,9 @@
 - `right.`
 - `remember (x + y) as xy.`
 - `replace (x + 0) with 0.`
+- `exfalso.`
+- `exists 1 + x.`
+- `inversion E as [EQ' | n' E' EQ'].`
 
 ## From textbook
 

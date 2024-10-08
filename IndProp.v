@@ -231,7 +231,9 @@ Inductive Perm3 {X : Type} : list X -> list X -> Prop :=
     [[3;2;1]]?  Is [[1;2;3]] a permutation of itself? *)
 
 (* FILL IN HERE
-
+    1. Yes because [[1;2;3]] => [[1;3;2]] => [[3;1;2]] => [[3;2;1]] by
+        [perm3_swap23] => [perm3_swap12] => [perm3_swap23],
+        along with [perm3_trans].
     [] *)
 
 Example Perm3_example1 : Perm3 [1;2;3] [2;3;1].
@@ -358,8 +360,12 @@ Qed.
 Theorem ev_double : forall n,
   ev (double n).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n.
+  induction n as [|n'].
+  - simpl. apply ev_0.
+  - simpl. apply ev_SS. apply IHn'.
+Qed.
+(** [x] *)
 
 (* ################################################################# *)
 (** * Using Evidence in Proofs *)
@@ -478,8 +484,12 @@ Proof.
 Theorem SSSSev__even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n H.
+  inversion H as [|n' E' Heq].
+  inversion E' as [|n'' E'' Heq'].
+  apply E''.
+Qed.
+(** [x] *)
 
 (** **** Exercise: 1 star, standard (ev5_nonsense)
 
@@ -488,8 +498,13 @@ Proof.
 Theorem ev5_nonsense :
   ev 5 -> 2 + 2 = 9.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros H.
+  simpl.
+  inversion H as [|n E Heq].
+  inversion E as [|n' E' Heq'].
+  inversion E' as [|n'' E'' Heq''].
+Qed.
+(** [x] *)
 
 (** The [inversion] tactic does quite a bit of work. For
     example, when applied to an equality assumption, it does the work
@@ -652,8 +667,14 @@ Qed.
 (** **** Exercise: 2 stars, standard (ev_sum) *)
 Theorem ev_sum : forall n m, ev n -> ev m -> ev (n + m).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m Hn Hm.
+  induction Hn as [|n' E IHn].
+  - simpl. apply Hm.
+  - simpl.
+    apply ev_SS.
+    apply IHn.
+Qed.
+(** [x] *)
 
 (** **** Exercise: 4 stars, advanced, optional (ev'_ev)
 
@@ -674,8 +695,36 @@ Inductive ev' : nat -> Prop :=
 
 Theorem ev'_ev : forall n, ev' n <-> ev n.
 Proof.
- (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n.
+  split.
+  - intros H.
+    induction H as [| |n' m' Hn Hn' Hm IHnm]. 
+    + apply ev_0.
+    + apply ev_SS. apply ev_0.
+    + apply ev_sum. apply Hn'. apply IHnm.
+  (* - intros H.
+    inversion H as [| |n' m' IHn IHm IHnm].
+    + apply ev_0.
+    + apply ev_SS. apply ev_0.
+    + apply ev_sum.
+      admit. *)
+      
+      (* destruct n' as [|n''].
+      * destruct m' as [|m''].
+        -- simpl. apply ev_0.
+        -- destruct m'' as [|m''].   
+           Search (ev (S _)).
+           ++ exfalso. *)
+  - intros H.
+    induction H.
+    + apply ev'_0.
+    + replace (ev' (S (S n))) with (ev' (2 + n)). 
+      apply ev'_sum.
+      apply ev'_2.
+      apply IHev.
+      simpl. reflexivity.
+Qed.
+(** [x] *)
 
 (** **** Exercise: 3 stars, advanced, especially useful (ev_ev__ev) *)
 Theorem ev_ev__ev : forall n m,
@@ -683,8 +732,16 @@ Theorem ev_ev__ev : forall n m,
   (* Hint: There are two pieces of evidence you could attempt to induct upon
       here. If one doesn't work, try the other. *)
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m Hnm Hn.
+  induction Hn.
+  - simpl in Hnm.
+    apply Hnm.
+  - simpl in Hnm.
+    apply IHHn.
+    apply evSS_ev in Hnm.
+    apply Hnm.
+Qed.
+(** [x] *)
 
 (** **** Exercise: 3 stars, standard, optional (ev_plus_plus)
 
@@ -692,11 +749,82 @@ Proof.
     But, you will need a clever assertion and some tedious rewriting.
     Hint: Is [(n+m) + (n+p)] even? *)
 
+Lemma same_is_ev : forall n m,
+  (ev n /\ ev m) \/ (~ ev n /\ ~ ev m) ->
+  ev (n + m).
+Proof.
+  intros n m [[Hn Hm] | [Hn Hm]].
+  - inversion Hn as [H_eq_n | n' Hn' H_eq_n].
+    + simpl. apply Hm.
+    + simpl. apply ev_SS.
+      induction Hm as [| m' Hm' IHm']. 
+      * rewrite add_0_r. apply Hn'.
+      * rewrite <- plus_n_Sm. rewrite <- plus_n_Sm.
+        apply ev_SS. apply IHm'.
+  - destruct n as [|n'].
+    + exfalso. apply Hn. apply ev_0.
+    + destruct m as [|m'].
+      * exfalso. apply Hm. apply ev_0.
+      * destruct n'.
+        -- induction m'.
+           ++ simpl. apply ev_SS. apply ev_0.
+           ++ simpl in IHm'.
+              exfalso. apply Hm.
+              apply IHm'.
+              intros HSm.
+              apply Hm. 
+              replace (ev (S (S m'))) with (ev (1 + (S m'))).
+              apply ev_sum.
+
+Admitted.
+
+Lemma ev_nm_np : forall n m p,
+  ev ((n + m) + (n + p)) <->
+    (ev n /\ ev m /\ ev p) \/
+    (~ ev n /\ ~ ev m /\ ~ ev p).
+Proof. Admitted.
+
+Lemma ev_mp_nmnp : forall n m p,
+  ev (m + p) <-> ev ((n + m) + (n + p)).
+Proof.
+  intros n m p.
+
+  rewrite add_assoc.
+  rewrite <- add_assoc with (p := n).
+  rewrite add_comm with (n := m) (m := n).
+  rewrite add_assoc with (n := n).
+  rewrite <- add_assoc with (n := (n + n)).
+  rewrite <- double_plus.
+
+  split.
+  - intros H.
+    apply ev_sum.
+    apply ev_double.
+    apply H.
+  - apply ev_ev__ev.
+    rewrite <- (add_assoc (double n) (m + p) (m + p)).
+    apply ev_sum.
+    apply ev_double.
+    rewrite <- (add_assoc m p (m + p)).
+    rewrite (add_shuffle3 p m p).
+    rewrite (add_assoc m m (p + p)).
+    rewrite <- double_plus.
+    rewrite <- double_plus.
+    apply ev_sum.
+    apply ev_double.
+    apply ev_double.
+Qed.
+
 Theorem ev_plus_plus : forall n m p,
   ev (n+m) -> ev (n+p) -> ev (m+p).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m p Hnm Hnp.
+  rewrite ev_mp_nmnp with (n := n).
+  apply ev_sum.
+  apply Hnm.
+  apply Hnp.
+Qed.
+(** [x] *)
 
 (* ################################################################# *)
 (** * Inductive Relations *)
