@@ -1927,28 +1927,83 @@ Definition tr_rev {X} (l : list X) : list X :=
 
     Prove that the two definitions are indeed equivalent. *)
 
+(* Lemma rev_append_cons : forall X (l : list X) (x : X),
+  rev_append l [x] = rev_append l [] ++ [x].
+Proof.
+  intros X l.
+  induction l as [|x' l' IHl].
+  - reflexivity.
+  - simpl.
+    intros x.
+    rewrite IHl.
+
+Qed. *)
+
+(* Theorem tr_rev_distr : forall X (l1 l2 : list X),
+  tr_rev (l1 ++ l2) = (tr_rev l2) ++ (tr_rev l1).
+Proof.
+  intros X l1.
+  induction l1 as [|x' l1' IHl1].
+  - intros l2. simpl.
+    replace (tr_rev []) with (@nil X).
+    symmetry. apply app_nil_r.
+    unfold tr_rev. unfold rev_append. reflexivity.
+  - simpl. unfold tr_rev. simpl. unfold rev_append.
+Qed. *)
+
+Lemma rev_append__rev : forall X (l1 l2 : list X),
+  rev_append l1 l2 = rev l1 ++ l2.
+Proof.
+  intros X l1.
+  induction l1 as [|x l1' IHl1].
+  - reflexivity.
+  - intros l2.
+    simpl.
+    rewrite <- app_assoc. 
+    simpl.
+    rewrite IHl1.
+    reflexivity.
+Qed.
+
 Theorem tr_rev_correct : forall X, @tr_rev X = @rev X.
 Proof.
   intros X.
   apply functional_extensionality.
   intros l.
+  unfold tr_rev.
+  rewrite rev_append__rev.
+  rewrite app_nil_r.
+  reflexivity.
+  (* intros X.
+  apply functional_extensionality.
+  intros l.
   induction l as [|x' l' IHl].
+  - reflexivity.
+  -
+
+    simpl. rewrite <- IHl.
+    destruct (tr_rev l') as [|x'' l''].
+    + simpl.
+      unfold tr_rev. rewrite IHl.
+      simpl.
+    unfold tr_rev. simpl.
+    destruct .
+    -  *)
+  (* induction l as [|x' l' IHl].
   - reflexivity.
   - simpl.
     rewrite <- IHl.
-    unfold tr_rev. unfold tr_rev in IHl.
-    simpl. simpl in IHl.
-    admit.
-Admitted.
+    unfold tr_rev.
+    simpl. simpl in IHl. *)
     (* rewrite <- IHl.
     destruct l' as [|x'' l''].
     + reflexivity.
     + unfold tr_rev. simpl.
       unfold tr_rev in IHl.
-      simpl in IHl.
+      simpl in IHl. *)
 
-Qed. *)
-(** [] *)
+Qed.
+(** [x] *)
 
 (* ================================================================= *)
 (** ** Classical vs. Constructive Logic *)
